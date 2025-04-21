@@ -1,0 +1,170 @@
+﻿@model List<DemoWebsite.Models.Entity.SinhVien>
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<!-- Button trigger modal -->
+<div class="flex justify-content-between py-2">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Thêm sinh viên jquery
+    </button>
+    <a type="button" href="/Home/Add" class="btn btn-primary">
+        Thêm sinh viên
+    </a>
+</div>
+<div class="text-center">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th scope="col">STT</th>
+                <th scope="col">MSSV</th>
+                <th scope="col">Họ và Tên</th>
+                <th scope="col">Giới tính</th>
+                <th scope="col">Địa chỉ</th>
+                <th scope="col">Số điện thoại</th>
+                <th scope="col">Sự kiện</th>
+            </tr>
+        </thead>
+        <tbody id="datatable">
+            @* @if (Model != null)
+            {
+                int i = 0;
+                foreach (var item in Model)
+                {
+                    i++;
+                    <tr>
+                        <td class="text-center">@i</td>
+                        <td class="text-center">@item.MSSV</td>
+                        <td class="text-center">@item.HoTen</td>
+                        <td class="text-center">@item.GioiTinh</td>
+                        <td class="text-center">@item.DiaChi</td>
+                        <td class="text-center">@item.SoDienThoai</td>
+                        <td class="text-center">
+                            <a class="px-2" asp-area="" asp-controller="Home" asp-action="Xoa" asp-route-id="@item.Id">
+                               Delete
+                            </a>
+                            <a class="px-2" href="@Url.Action("CapNhat", "Home", new { id = item.Id})">
+                                Edit
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <caption>
+                    Không có dữ liệu
+                </caption>
+            } *@
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Thêm thông tin sinh viên</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add">
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">MSSV</label>
+                        <input type="text" id="mssv" class="form-control">
+                    </div>
+                    <div>
+                        <label  for="exampleInputEmail1" class="form-label">Họ và Tên</label>
+                        <input type="text" id="hoten" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Giới tính</label>
+                        <input type="text" id="gioitinh" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Địa chỉ</label>
+                        <input type="text" id="diachi" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="exampleInputEmail1" class="form-label">Số điện thoại</label>
+                        <input type="text" id="sdt" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                <button type="button" class="btn btn-primary" onclick="addSVController()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+<script>
+    $(document).ready(function () {
+        renderTableSVController();
+    });
+
+    function renderTableSVController() {
+        $.ajax({
+            url: '/Home/ListSV',
+            type: 'GET',
+            success: function (data) {
+                $("#datatable").empty();
+                console.log("DATA CONTROLLER: ", data)
+                if (data.length > 0) {
+                    data.map((item, index) => {
+                        $("#datatable").append(`<tr>
+                                    <td>${index + 1}</td>
+                                    <td>${item.mssv}</td>
+                                    <td>${item.hoTen}</td>
+                                    <td>${item.gioiTinh}</td>
+                                    <td>${item.diaChi}</td>
+                                    <td>${item.soDienThoai}</td>
+                                    <td class="text-center">
+                                        <a class="px-2">
+                                           Delete
+                                        </a>
+                                        <a class="px-2">
+                                            Edit
+                                        </a>
+                                    </td>
+                                </tr>`);
+                    })
+                }
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    }
+
+    function addSVController() {
+        let gt = $("#gioitinh").val();
+        let dc = $("#diachi").val();
+        let sdt = $("#sdt").val();
+
+        $.ajax({
+            url: '/Home/ThemMoi',
+            type: 'POST',
+            data: {
+                MSSV: $("#mssv").val(),
+                HoTen: $("#hoten").val(),
+                GioiTinh: gt,
+                DiaChi: dc,
+                SoDienThoai: sdt
+            },
+            success: function (data) {
+                console.log(data)
+                $("#exampleModal").modal('hide');
+                renderTableSVController()
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    }
+</script>
+}
