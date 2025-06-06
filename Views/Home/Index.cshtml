@@ -1,4 +1,5 @@
-﻿@model List<DemoWebsite.Models.Entity.SinhVien>
+﻿@* @model List<DemoWebsite.Models.KhoaViewModel.ViewModelKhoa> *@
+@model DemoWebsite.Models.Entity.SinhVien
 
 @{
     ViewData["Title"] = "Home Page";
@@ -26,38 +27,7 @@
                 <th scope="col">Sự kiện</th>
             </tr>
         </thead>
-        <tbody id="datatable">
-            @* @if (Model != null)
-            {
-                int i = 0;
-                foreach (var item in Model)
-                {
-                    i++;
-                    <tr>
-                        <td class="text-center">@i</td>
-                        <td class="text-center">@item.MSSV</td>
-                        <td class="text-center">@item.HoTen</td>
-                        <td class="text-center">@item.GioiTinh</td>
-                        <td class="text-center">@item.DiaChi</td>
-                        <td class="text-center">@item.SoDienThoai</td>
-                        <td class="text-center">
-                            <a class="px-2" asp-area="" asp-controller="Home" asp-action="Xoa" asp-route-id="@item.Id">
-                               Delete
-                            </a>
-                            <a class="px-2" href="@Url.Action("CapNhat", "Home", new { id = item.Id})">
-                                Edit
-                            </a>
-                        </td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <caption>
-                    Không có dữ liệu
-                </caption>
-            } *@
-        </tbody>
+        <tbody id="datatable"></tbody>
     </table>
 </div>
 
@@ -70,14 +40,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <input type="text" id="id" hidden class="form-control">
                 <form id="form-add">
                     <div class="mb-3">
                         <label for="exampleInputEmail1" class="form-label">MSSV</label>
-                        <input type="text" id="mssv" class="form-control">
+                        <input asp-for="MSSV" type="text" class="form-control">
                     </div>
                     <div>
                         <label  for="exampleInputEmail1" class="form-label">Họ và Tên</label>
-                        <input type="text" id="hoten" class="form-control">
+                        <input asp-for="HoTen" type="text" id="hoten" class="form-control">
                     </div>
                     <div class="mb-3">
                         <label for="exampleInputEmail1" class="form-label">Giới tính</label>
@@ -106,7 +77,7 @@
     $(document).ready(function () {
         renderTableSVController();
     });
-
+    // ``   ''     ""
     function renderTableSVController() {
         $.ajax({
             url: '/Home/ListSV',
@@ -124,10 +95,10 @@
                                     <td>${item.diaChi}</td>
                                     <td>${item.soDienThoai}</td>
                                     <td class="text-center">
-                                        <a class="px-2">
+                                        <a href="javascript:void(0);" class="px-2" onclick="deleteSV('${item.id}')">
                                            Delete
                                         </a>
-                                        <a class="px-2">
+                                        <a href="javascript:void(0);" class="px-2" onclick="updateSV('${item.id}')">
                                             Edit
                                         </a>
                                     </td>
@@ -141,30 +112,111 @@
         });
     }
 
+    function resetForm(){
+        $("#id").val("");
+        $("#mssv").val("");
+        $("#hoten").val("");
+        $("#gioitinh").val("");
+        $("#diachi").val("");
+        $("#sdt").val("");
+    }
+
     function addSVController() {
+        let id = $("#id").val();
+        console.log("ID: ", id)
+        let mssv = $("#mssv").val();
+        let hoten = $("#hoten").val();
         let gt = $("#gioitinh").val();
         let dc = $("#diachi").val();
         let sdt = $("#sdt").val();
 
         $.ajax({
-            url: '/Home/ThemMoi',
-            type: 'POST',
+            url: id === "" ? '/Home/ThemMoi' : '/Home/CapNhat/' + id,
+            type: id === "" ? 'POST' : 'GET',
             data: {
-                MSSV: $("#mssv").val(),
-                HoTen: $("#hoten").val(),
+                MSSV: mssv,
+                HoTen: hoten,
                 GioiTinh: gt,
                 DiaChi: dc,
                 SoDienThoai: sdt
             },
             success: function (data) {
-                console.log(data)
+                console.log(data);
                 $("#exampleModal").modal('hide');
-                renderTableSVController()
+                resetForm();
+                renderTableSVController(); // Hàm này bạn đã dùng đúng
             },
-            error: function (error) {
-                console.log(error)
+            error: function (xhr, status, error) {
+                console.error("Lỗi:", error);
+                console.log("Chi tiết:", xhr.responseText);
             }
         });
     }
+
+    function updateSV(id){
+        console.log(id)
+        $.ajax({
+            url: '/Home/DetailSV/' + id,
+            type: 'GET',
+            success: function (data) {
+                alert("Lay thong tin thanh cong!");
+                $("#id").val(data.id);
+                $("#mssv").val(data.mssv);
+                $("#hoten").val(data.hoTen);
+                $("#gioitinh").val(data.gioiTinh);
+                $("#diachi").val(data.diaChi);
+                $("#sdt").val(data.soDienThoai);
+                $("#exampleModal").modal('show');
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi:", error);
+                console.log("Chi tiết:", xhr.responseText);
+            }
+        });
+        
+    }
+
+    function deleteSV(id){
+        console.log(id)
+        $.ajax({
+            url: '/Home/Xoa/' + id,
+            type: 'DELETE',
+            success: function (data) {
+                console.log("Xoa thanh cong");
+                alert("Xoa du lieu thanh cong!");
+                renderTableSVController(); // Hàm này bạn đã dùng đúng
+            },
+            error: function (xhr, status, error) {
+                console.error("Lỗi:", error);
+                console.log("Chi tiết:", xhr.responseText);
+            }
+        });
+    }
+
+    // function addSVController() {
+    //     let gt = $("#gioitinh").val();
+    //     let dc = $("#diachi").val();
+    //     let sdt = $("#sdt").val();
+
+    //     $.ajax({
+    //         url: '/Home/ThemMoi',
+    //         type: 'POST',
+    //         data: {
+    //             MSSV: $("#mssv").val(),
+    //             HoTen: $("#hoten").val(),
+    //             GioiTinh: gt,
+    //             DiaChi: dc,
+    //             SoDienThoai: sdt
+    //         },
+    //         success: function (data) {
+    //             console.log(data)
+    //             $("#exampleModal").modal('hide');
+    //             renderTableSVController()
+    //         },
+    //         error: function (error) {
+    //             console.log(error)
+    //         }
+    //     });
+    // }
 </script>
 }

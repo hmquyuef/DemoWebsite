@@ -1,11 +1,9 @@
-using System.Diagnostics;
-using Azure.Core;
-using DemoWebsite.Models;
 using DemoWebsite.Models.Entity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemoWebsite.Controllers
 {
+    [Route("trang-chu")]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -21,10 +19,13 @@ namespace DemoWebsite.Controllers
         //GET: /Home/Index
         //danh-sach
         //[Route("danh-sach")]
+        [Route("danh-sach")]
         public async Task<IActionResult> Index()
         {
+            ViewData["Title"] = "Danh sách sinh viên";
             return View();
         }
+        [HttpGet]
         public async Task<IActionResult> ListSV()
         {
             //lay du lieu tu SQL
@@ -32,6 +33,20 @@ namespace DemoWebsite.Controllers
             if (items == null) return NotFound();
             return Ok(items);
         }
+
+        [HttpGet("/Home/DetailSV/{id}")]
+        public async Task<IActionResult> DetailSV(string id)
+        {
+            //lay du lieu tu SQL
+            var item = _context.SinhViens.FirstOrDefault(x => x.Id == Guid.Parse(id));
+            if (item == null) return NotFound();
+            return Ok(item);
+        }
+
+        //public IActionResult ThemMoi()
+        //{
+        //    return View();
+        //}
 
         //POST: /Home/ThemMoi
         [HttpPost]
@@ -52,7 +67,13 @@ namespace DemoWebsite.Controllers
             //return Redirect("/Home/Index");
         }
 
+        //public IActionResult Xoa()
+        //{
+        //    return View();
+        //}
+
         //ham xoa thong tin
+        [HttpDelete("/Home/Xoa/{id}")]
         public async Task<IActionResult> Xoa(string id)
         {
             //xoa 1 dong du lieu
@@ -66,10 +87,15 @@ namespace DemoWebsite.Controllers
                 _context.SinhViens.Remove(item);
                 await _context.SaveChangesAsync();
             }
-            return Redirect("/Home/Index");
+            return NoContent();
         }
+
+        //public IActionResult Capnhat()
+        //{
+        //    return View();
+        //}
        
-        [HttpPost]
+        [HttpPut("/Home/CapNhat/{id}")]
         public async Task<IActionResult> CapNhat(string id, SinhVien input)
         {
             //sua 1 dong du lieu
@@ -90,7 +116,7 @@ namespace DemoWebsite.Controllers
                 _context.SinhViens.Update(item);
                 await _context.SaveChangesAsync();
             }
-            return Redirect("/Home/Index");
+            return Ok();
         }
     }
 }
